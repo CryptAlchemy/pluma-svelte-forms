@@ -34,6 +34,7 @@ export default class FormController {
 		this.settings.displayErrorsOnChange = getValueOrDefault(config.displayErrorsOnChange, false);
 		this.settings.hideErrorsOnChange = getValueOrDefault(config.hideErrorsOnChange, true);
 		this.settings.addValidClassToAllInputs = getValueOrDefault(config.hideErrorsOnChange, false);
+		this.settings.initialValues = config.initialValues ?? {};
 
 		this.form = config.form;
 		this.form.addEventListener('submit', this.onSubmit);
@@ -48,6 +49,7 @@ export default class FormController {
 		this.stores = {};
 		this.stores.displayedErrors = config.displayedErrors;
 		this.stores.controllerState = config.controllerState;
+		this.stores.data = config.data;
 
 		this.initInputs();
 		this.updateControllerState();
@@ -103,6 +105,11 @@ export default class FormController {
 
 			this.stores.controllerState.set(controllerState);
 		}
+		if (this.stores.data) {
+			const values = getValuesFromState(this.controllerState)
+
+			this.stores.data.set(values);
+		}
 
 		if (this.stores.displayedErrors) this.stores.displayedErrors.set(this.displayedErrors);
 	}
@@ -131,6 +138,14 @@ export default class FormController {
 
 		// init inputs and field state
 		const inputs = getFormInputElements(this.form);
+		
+		// Set initial values
+		inputs.forEach((input) => {
+			var name = input.getAttribute("name")
+			if(this.settings.initialValues[name]) {
+				input.value = this.settings.initialValues[name];	
+			}
+		})
 
 		inputs.forEach((input) => {
 			this.addListenersToInput(input);
