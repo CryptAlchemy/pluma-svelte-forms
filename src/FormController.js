@@ -61,6 +61,9 @@ export default class FormController {
 		// input.addEventListener('change', this.onInput);
 		input.addEventListener('blur', this.onBlur);
 		input.addEventListener('focus', this.onFocus);
+
+		// Custom @smui/select listener
+		input.addEventListener('SMUISelect:change', this.onInput)
 	}
 
 	removeListenersFromInput (input) {
@@ -68,6 +71,9 @@ export default class FormController {
 		// input.removeEventListener('change', this.onInput);
 		input.removeEventListener('blur', this.onBlur);
 		input.removeEventListener('focus', this.onFocus);
+
+		// Custom @smui/select listener
+		input.removeEventListener('SMUISelect:change', this.onInput)
 	}
 
 	destroy () {
@@ -281,6 +287,11 @@ export default class FormController {
 			const hideErrorsOnChange = this.settings.hideErrorsOnChange;
 
 			if (displayErrorOnChange || (isDisplayingError && hideErrorsOnChange === false)) fieldState.displayError = true;
+		}
+
+		// For @smui/select
+		if(event?.detail?.value) {
+			fieldState.value = event.detail.value
 		}
 
 		fieldState.dirty = true;
