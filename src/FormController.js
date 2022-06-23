@@ -290,7 +290,7 @@ export default class FormController {
 		}
 
 		// For @smui/select
-		if(event?.detail?.value) {
+		if(event?.type == "SMUISelect:change") {
 			fieldState.value = event.detail.value
 		}
 
