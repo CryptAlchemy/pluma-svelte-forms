@@ -292,6 +292,14 @@ export default class FormController {
 		// For @smui/select
 		if(event?.type == "SMUISelect:change") {
 			fieldState.value = event.detail.value
+
+			if(event.detail.value) {
+				fieldState.validationState = VALID;
+				fieldState.error = '';
+			} else {
+				fieldState.validationState = INVALID;
+				fieldState.error = 'valueMissing';
+			}
 		}
 
 		fieldState.dirty = true;
