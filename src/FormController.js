@@ -62,8 +62,9 @@ export default class FormController {
 		input.addEventListener('blur', this.onBlur);
 		input.addEventListener('focus', this.onFocus);
 
-		// Custom @smui/select listener
+		// Custom @smui listeners
 		input.addEventListener('SMUISelect:change', this.onInput)
+		input.addEventListener('SMUISwitch:change', this.onInput)
 	}
 
 	removeListenersFromInput (input) {
@@ -72,8 +73,9 @@ export default class FormController {
 		input.removeEventListener('blur', this.onBlur);
 		input.removeEventListener('focus', this.onFocus);
 
-		// Custom @smui/select listener
+		// Custom @smui listeners
 		input.removeEventListener('SMUISelect:change', this.onInput)
+		input.removeEventListener('SMUISwitch:change', this.onInput)
 	}
 
 	destroy () {
@@ -149,7 +151,11 @@ export default class FormController {
 		inputs.forEach((input) => {
 			var name = input.getAttribute("name")
 			if(this.settings.initialValues[name]) {
-				input.value = this.settings.initialValues[name];	
+				// Check if checkbox or regular
+				if(input.type === "checkbox")
+					input.checked = this.settings.initialValues[name];
+				else
+					input.value = this.settings.initialValues[name];
 			}
 		})
 
@@ -289,9 +295,20 @@ export default class FormController {
 			if (displayErrorOnChange || (isDisplayingError && hideErrorsOnChange === false)) fieldState.displayError = true;
 		}
 
-		// For @smui/select
+		// For @smui
 		if(event?.type == "SMUISelect:change") {
 			fieldState.value = event.detail.value
+
+			if(event.detail.value) {
+				fieldState.validationState = VALID;
+				fieldState.error = '';
+			} else {
+				fieldState.validationState = INVALID;
+				fieldState.error = 'valueMissing';
+			}
+		}
+		if(event?.type == "SMUISwitch:change") {
+			fieldState.value = event.detail.selected
 
 			if(event.detail.value) {
 				fieldState.validationState = VALID;
