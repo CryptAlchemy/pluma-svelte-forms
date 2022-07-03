@@ -299,7 +299,7 @@ export default class FormController {
 		if(event?.type == "SMUISelect:change") {
 			fieldState.value = event.detail.value
 
-			if(event.detail.value) {
+			if(event.detail.value || !event.target.required) {
 				fieldState.validationState = VALID;
 				fieldState.error = '';
 			} else {
@@ -310,7 +310,7 @@ export default class FormController {
 		if(event?.type == "SMUISwitch:change") {
 			fieldState.value = event.detail.selected
 
-			if(event.detail.value) {
+			if(event.detail.selected || !event.target.required) {
 				fieldState.validationState = VALID;
 				fieldState.error = '';
 			} else {
