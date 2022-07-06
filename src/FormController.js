@@ -142,6 +142,9 @@ export default class FormController {
 			});
 
 			this.trackedInputs = [];
+
+			// Clean fields
+			this.controllerState.fields = {};
 		}
 
 		// init inputs and field state
