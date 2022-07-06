@@ -153,12 +153,18 @@ export default class FormController {
 		// Set initial values
 		inputs.forEach((input) => {
 			var name = input.getAttribute("name")
-			if(this.settings.initialValues[name]) {
+			if(this.settings.initialValues[name] && !input.getAttribute("data-initial-value-set")) {
 				// Check if checkbox or regular
 				if(input.type === "checkbox")
 					input.checked = this.settings.initialValues[name];
-				else
+				else {
 					input.value = this.settings.initialValues[name];
+					input.dispatchEvent(new InputEvent('input', {
+						data: this.settings.initialValues[name],
+					}));
+				}
+				// Mark input as having received initial value
+				input.setAttribute("data-initial-value-set", "true");
 			}
 		})
 
@@ -411,6 +417,8 @@ export default class FormController {
 		const {name} = parseInputName(input.name);
 		const field = this.controllerState.fields[name];
 		const displayError = this.displayedErrors[name];
+
+		if(!field) return;
 
 		if (
 			field.validationState === VALID &&
