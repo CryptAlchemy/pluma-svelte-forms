@@ -154,10 +154,14 @@ export default class FormController {
 		inputs.forEach((input) => {
 			var name = input.getAttribute("name")
 			if(this.settings.initialValues[name] && !input.getAttribute("data-initial-value-set")) {
-				// Check if checkbox or regular
-				if(input.type === "checkbox")
-					input.checked = this.settings.initialValues[name];
-				else {
+				// Check if button or regular
+				if(input.type === "button") {
+					var event = new Event('input')
+					event.data = {
+						checked: this.settings.initialValues[name],
+					}
+					input.dispatchEvent(event);
+				} else {
 					input.value = this.settings.initialValues[name];
 					input.dispatchEvent(new InputEvent('input', {
 						data: this.settings.initialValues[name],
@@ -478,6 +482,11 @@ function getFormInputElements (form) {
 
 function getInputState (input) {
 	let {name: inputName, type, value, checked} = input;
+
+	// Handle @smui switch
+	if(input.classList.contains('mdc-switch')) {
+		value = input.getAttribute("aria-checked") == "true" ? true : false;
+	}
 
 	switch (type) {
 		case InputTypes.CHECKBOX:
