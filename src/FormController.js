@@ -473,7 +473,8 @@ function getFormInputElements (form) {
 	const inputs = [];
 
 	for (var i = 0; i < htmlCollection.length; i++) {
-		if (htmlCollection[i].type === InputTypes.SUBMIT) continue;
+		var name = htmlCollection[i].getAttribute("name")
+		if (htmlCollection[i].type === InputTypes.SUBMIT || !name || name == "") continue;
 		inputs.push(htmlCollection[i]);
 	}
 
