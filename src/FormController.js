@@ -27,6 +27,8 @@ export default class FormController {
 		this.settings = {};
 		this.settings.fields = config.fields ? config.fields : {};
 		this.settings.onSubmit = config.onSubmit;
+		this.settings.onInput = config.onInput;
+		this.settings.postInit = config.postInit;
 		this.settings.useNativeErrorTooltips = getValueOrDefault(config.useNativeErrorTooltips, false);
 		this.settings.validClass = getValueOrDefault(config.validClass, 'valid');
 		this.settings.invalidClass = getValueOrDefault(config.invalidClass, 'invalid');
@@ -129,6 +131,12 @@ export default class FormController {
 		this.updateStores();
 	}
 
+	triggerOnInput (event) {
+		if(this.settings.onInput) {
+			this.settings.onInput(event);
+		}
+	}
+
 	onDOMMutation (event) {
 		window.requestAnimationFrame(() => {
 			this.initInputs();
@@ -154,8 +162,8 @@ export default class FormController {
 		inputs.forEach((input) => {
 			var name = input.getAttribute("name")
 			if(this.settings.initialValues[name] && !input.getAttribute("data-initial-value-set")) {
-				// Check if button or regular
-				if(input.type === "button") {
+				// Handle @smui stuff else regular
+				if(input.classList.contains(`mdc-switch`)) {
 					var event = new Event('input')
 					event.data = {
 						checked: this.settings.initialValues[name],
@@ -167,26 +175,33 @@ export default class FormController {
 						data: this.settings.initialValues[name],
 					}));
 				}
-				// Mark input as having received initial value
-				input.setAttribute("data-initial-value-set", "true");
 			}
+			// Mark input as having received initial value
+			input.setAttribute("data-initial-value-set", "true");
 		})
 
-		inputs.forEach((input) => {
-			this.addListenersToInput(input);
-			const {name, alias} = parseInputName(input.name);
-
-			if (!this.controllerState.fields[name]) {
-				const fieldState = this.getFieldStateFromInput(input);
-				fieldState.dirty = false;
-				this.updateFieldState(name, fieldState);
+		// Add a 0-second delay to avoid issues with @smui
+		setTimeout(() => {
+			inputs.forEach((input) => {
+				this.addListenersToInput(input);
+				const {name, alias} = parseInputName(input.name);
+	
+				if (!this.controllerState.fields[name]) {
+					const fieldState = this.getFieldStateFromInput(input);
+					fieldState.dirty = false;
+					this.updateFieldState(name, fieldState);
+				}
+	
+				this.trackedInputs.push(input);
+			});
+	
+			this.updateControllerState();
+			this.updateStores();
+	
+			if(this.settings.postInit) {
+				this.settings.postInit();
 			}
-
-			this.trackedInputs.push(input);
-		});
-
-		this.updateControllerState();
-		this.updateStores();
+		},0)
 	}
 
 	// ------------------------------------------------
@@ -332,6 +347,11 @@ export default class FormController {
 			}
 		}
 
+		// Ignore onInput before initial value is set
+		if(event.target && !event.target.hasAttribute("data-initial-value-set")) return;
+		// Ignore onInput if value does not change (not SMUI; that is below)
+		if(this.controllerState.fields[name].value == fieldState.value) return;
+
 		fieldState.dirty = true;
 
 		this.updateFieldState(name, fieldState);
@@ -343,6 +363,8 @@ export default class FormController {
 		if (hasExternalValidator) {
 			this.triggerExternalValidationForField(name, event);
 		}
+
+		this.triggerOnInput(event);
 	}
 
 	onBlur (event) {
@@ -486,7 +508,7 @@ function getInputState (input) {
 
 	// Handle @smui switch
 	if(input.classList.contains('mdc-switch')) {
-		value = input.getAttribute("aria-checked") == "true" ? true : false;
+		value = input.ariaChecked == "true" ? true : false;
 	}
 
 	switch (type) {
